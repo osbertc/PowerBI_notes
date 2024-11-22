@@ -1,6 +1,19 @@
 # PowerBI_notes
 syntax for powerBI and power query
 
+### to map IDs to Names
+```
+= Table.AddColumn
+  (Source, "LeaseStationName",
+  each if [leasedByStation] = "BQongXZQwpYeRMoCr5lR" then "Bristol Sparks"
+  else if [leasedByStation] = "mrj5ldavL6k8MBCpRY9U" then "Sherman Theatre"
+  else if [leasedByStation] = "LfAnuhW4wOdspLcaCTkg" then "KIN+ILK The Maltings"
+  else if [leasedByStation] = null then "NA" else "error"
+)
+//[columnName] = 'value' replace with 'new value'
+
+```
+
 
 ### to append tables
 ```
