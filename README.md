@@ -56,7 +56,7 @@ DAX for powerBI and "Mashup" Language for power query
 ```
 let
     // Step 1: Load the source table
-    Source = Stock_LPR_combine,
+    Source = Stock_LPR_combine,  // Replace with your actual table name
 
     // Step 2: Add Stock Outflow Column (Lease)
     LeaseOutflow = Table.AddColumn(Source, "StockOut", each 1, type number),
@@ -64,15 +64,21 @@ let
     // Step 3: Add Stock Inflow Column (Return)
     ReturnInflow = Table.AddColumn(LeaseOutflow, "StockIn", each if [ReturnStationName] <> null then 1 else 0, type number),
 
-    // Step 4: Transform LeasePlace and ReturnPlace into Key Columns
-    Leases = Table.Group(LeaseOutflow, {"LeaseStationName"}, {{"LeasedStock", each List.Sum([StockOut]), type number}}),
-    Returns = Table.Group(ReturnInflow, {"ReturnStationName"}, {{"ReturnedStock", each List.Sum([StockIn]), type number}}),
+    // Step 4: Transform LeaseStationName and ReturnStationName into Key Columns
+    Leases = Table.Group(LeaseOutflow, {"LeaseStationName", "type"}, {{"LeasedStock", each List.Sum([StockOut]), type number}}),
+    Returns = Table.RenameColumns(
+        Table.Group(ReturnInflow, {"ReturnStationName", "type"}, 
+        {
+            {"ReturnedStock", each List.Sum([StockIn]), type number}}),
+            {"type", "ReturnType"}  // Rename columns to avoid duplicates
+    ),
 
     // Step 5: Merge Lease and Return Data into Stock Levels Table
-    Combined = Table.Join(Leases, "LeaseStationName", Returns, "ReturnStationName", JoinKind.FullOuter),
+    Combined = Table.Join(Leases, {"LeaseStationName"}, Returns, {"ReturnStationName"}, JoinKind.FullOuter),
 
     // Step 6: Fill Missing Values with Zero
     FinalTable = Table.ReplaceValue(Combined, null, 0, Replacer.ReplaceValue, {"LeasedStock", "ReturnedStock"}),
+
     // Step 7: Calculate Net Stock
     StockLevel = Table.AddColumn(FinalTable, "NetStock", each [ReturnedStock] - [LeasedStock], type number)
 in
