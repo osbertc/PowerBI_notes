@@ -1,5 +1,5 @@
 # PowerBI_notes
-syntax for powerBI and power query
+DAX for powerBI and "Mashup" Language for power query
 
 ### to map IDs to Names
 ```
